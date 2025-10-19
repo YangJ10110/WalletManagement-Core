@@ -1,5 +1,3 @@
-Here is the project documentation in markdown format.
-
 # Wallet Management System API  Wallet Management System API wallet
 
 This document provides technical documentation for the Wallet Management System, a RESTful API for core fintech operations.
