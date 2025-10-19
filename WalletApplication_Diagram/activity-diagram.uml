@@ -1,0 +1,40 @@
+@startuml
+title Fund Transfer Activity Diagram
+
+start
+:Receive Transfer Request;
+
+:Find Sender Wallet by ID;
+if (Sender Wallet Found?) then (yes)
+  :Find Receiver Wallet by ID;
+  if (Receiver Wallet Found?) then (yes)
+    if (Transfer Amount > 0?) then (yes)
+      :Check Sender's Balance;
+      if (Balance >= Amount?) then (yes)
+        partition "Database Transaction" {
+          :Debit Sender's Wallet Balance;
+          :Credit Receiver's Wallet Balance;
+          :Create DEBIT Transaction Record;
+          :Create CREDIT Transaction Record;
+          :Save All Changes;
+        }
+        :Return 200 OK Response;
+        stop
+      else (no, insufficient funds)
+        :Return 400 Bad Request (Insufficient Funds);
+        stop
+      endif
+    else (no)
+      :Return 400 Bad Request (Invalid Amount);
+      stop
+    endif
+  else (no)
+    :Return 404 Not Found (Receiver);
+    stop
+  endif
+else (no)
+  :Return 404 Not Found (Sender);
+  stop
+endif
+
+@enduml

@@ -1,0 +1,65 @@
+@startuml
+title Fund Transfer Sequence Diagram
+
+actor Client
+participant TransactionController
+participant TransactionService
+participant WalletRepository
+participant TransactionRepository
+database Database
+
+Client -> TransactionController: POST /api/transactions/transfer\n(TransactionRequestDTO)
+activate TransactionController
+
+TransactionController -> TransactionService: transfer(dto)
+activate TransactionService
+
+group @Transactional
+    TransactionService -> WalletRepository: findById(fromWalletId)
+    activate WalletRepository
+    WalletRepository -> Database: SELECT * FROM wallet WHERE id = ?
+    Database --> WalletRepository: senderWallet
+    WalletRepository --> TransactionService: senderWallet
+    deactivate WalletRepository
+
+    TransactionService -> WalletRepository: findById(toWalletId)
+    activate WalletRepository
+    WalletRepository -> Database: SELECT * FROM wallet WHERE id = ?
+    Database --> WalletRepository: receiverWallet
+    WalletRepository --> TransactionService: receiverWallet
+    deactivate WalletRepository
+
+    TransactionService -> TransactionService: Validate funds & business rules
+
+    TransactionService -> WalletRepository: save(senderWallet)
+    activate WalletRepository
+    WalletRepository -> Database: UPDATE wallet SET balance = ?
+    Database --> WalletRepository
+    deactivate WalletRepository
+
+    TransactionService -> WalletRepository: save(receiverWallet)
+    activate WalletRepository
+    WalletRepository -> Database: UPDATE wallet SET balance = ?
+    Database --> WalletRepository
+    deactivate WalletRepository
+
+    TransactionService -> TransactionRepository: save(debitTransaction)
+    activate TransactionRepository
+    TransactionRepository -> Database: INSERT INTO transaction...
+    Database --> TransactionRepository
+    deactivate TransactionRepository
+
+    TransactionService -> TransactionRepository: save(creditTransaction)
+    activate TransactionRepository
+    TransactionRepository -> Database: INSERT INTO transaction...
+    Database --> TransactionRepository
+    deactivate TransactionRepository
+end
+
+TransactionService --> TransactionController: TransactionDTO
+deactivate TransactionService
+
+TransactionController --> Client: 200 OK (TransactionDTO)
+deactivate TransactionController
+
+@enduml

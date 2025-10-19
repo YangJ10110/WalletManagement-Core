@@ -1,0 +1,90 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+title Wallet Management System - Class Diagram
+
+package "Entities" {
+    class User {
+        +Long id
+        +String name
+        +String email
+    }
+
+    class Wallet {
+        +Long id
+        +BigDecimal balance
+    }
+
+    class Transaction {
+        +Long id
+        +BigDecimal amount
+        +TransactionType type
+        +LocalDateTime timestamp
+    }
+
+    enum TransactionType {
+        DEPOSIT
+        WITHDRAW
+        TRANSFER_DEBIT
+        TRANSFER_CREDIT
+    }
+}
+
+package "DTOs" {
+    class UserCreationRequestDTO {
+      +String name
+      +String email
+    }
+    class TransactionRequestDTO {
+      +Long fromWalletId
+      +Long toWalletId
+      +BigDecimal amount
+    }
+    class WalletBalanceDTO {
+      +Long walletId
+      +BigDecimal balance
+    }
+}
+
+
+package "Repositories" {
+    interface UserRepository
+    interface WalletRepository
+    interface TransactionRepository
+}
+
+package "Services" {
+    interface UserService
+    interface WalletService
+    interface TransactionService
+
+    class UserServiceImpl implements UserService
+    class WalletServiceImpl implements WalletService
+    class TransactionServiceImpl implements TransactionService
+}
+
+package "Controllers" {
+    class UserController
+    class WalletController
+    class TransactionController
+}
+
+
+' Relationships
+User "1" -- "1" Wallet
+Wallet "1" -- "*" Transaction
+
+' Dependencies
+UserController .> UserService
+WalletController .> WalletService
+TransactionController .> TransactionService
+
+UserServiceImpl .> UserRepository
+UserServiceImpl .> WalletRepository
+
+WalletServiceImpl .> WalletRepository
+WalletServiceImpl .> TransactionRepository
+
+TransactionServiceImpl .> WalletRepository
+TransactionServiceImpl .> TransactionRepository
+@enduml
